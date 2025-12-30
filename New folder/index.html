@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Year's Countdown</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="fireworks"></canvas>
+    <div class="countdown-container">
+        <h1>New Year's Countdown</h1>  i
+        <div class="countdown">
+            <div class="time-unit">
+                <span class="time-value" id="days">00</span>
+                <span class="time-label">Days</span>
+            </div>
+            <div class="time-unit">
+                <span class="time-value" id="hours">00</span>
+                <span class="time-label">Hours</span>
+            </div>
+            <div class="time-unit">
+                <span class="time-value" id="minutes">00</span>
+                <span class="time-label">Minutes</span>
+            </div>
+            <div class="time-unit">
+                <span class="time-value" id="seconds">00</span>
+                <span class="time-label">Seconds</span>
+            </div>
+        </div>
+        <div class="message" id="message">Happy New Year!</div>
+    </div>
+
+    <audio id="fireworksSound" preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/firework-explosion-01.wav" type="audio/wav">
+        <source src="https://www.soundjay.com/misc/sounds/firework-explosion-01.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        const messageEl = document.getElementById('message');
+        const fireworksSound = document.getElementById('fireworksSound');
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let countdownActive = true;
+
+        function updateCountdown() {
+            const now = new Date();
+            const newYear = new Date(now.getFullYear() + 1, 0, 1);
+            const diff = newYear - now;
+
+            if (diff <= 0) {
+                countdownActive = false;
+                messageEl.classList.add('show');
+                startFireworks();
+                playMusic();
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            daysEl.textContent = days.toString().padStart(2, '0');
+            hoursEl.textContent = hours.toString().padStart(2, '0');
+            minutesEl.textContent = minutes.toString().padStart(2, '0');
+            secondsEl.textContent = seconds.toString().padStart(2, '0');
+        }
+
+        function startFireworks() {
+            setInterval(() => {
+                createFirework();
+            }, 200);
+        }
+
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height / 2;
+            const colors = ['#ff0040', '#ff4080', '#40ff80', '#4080ff', '#ffff40'];
+
+            for (let i = 0; i < 20; i++) {
+                const particle = {
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 60
+                };
+                animateParticle(particle);
+            }
+        }
+
+        function animateParticle(particle) {
+            const animate = () => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.1; // gravity
+                particle.life--;
+
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (particle.life > 0) {
+                    requestAnimationFrame(animate);
+                }
+            };
+            animate();
+        }
+
+        function playMusic() {
+            fireworksSound.play().catch(e => console.log('Audio play failed:', e));
+        }
+
+        // Clear canvas each frame
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        setInterval(() => {
+            if (countdownActive) {
+                updateCountdown();
+            } else {
+                clearCanvas();
+            }
+        }, 1000);
+
+        // Initial call
+        updateCountdown();
+    </script>
+</body>
+</html>
